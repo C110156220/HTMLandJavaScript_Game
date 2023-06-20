@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML 2D Canvas</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            display: block;
+            background:#87CECB  ;
+        }
+    </style>
+</head>
+
+<body>
+<emded src="GAMING BGM.mp3" hidden="true" controls autoplay loop></emded>
+<div id="ball"></div>
+    <canvas id="myCanvas" width="1690" height="800">
+    </canvas>
+        
+    </canvas>
+
+    <script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var ballRadius = 12; //球的半徑
+
+var x = canvas.width/10; 
+var  newx = 0 //test
+var  newy = 0 //test
+var y = canvas.height-30; //球的初始位置,離地30cm
+// var beginGo = rand(100/500) //隨機生成小球與滑塊位置
+var dx = 6; //球初始x值
+var dy = -6; //求初始y值
+var paddleHeight = 10; //板子高度
+var paddleWidth = 220; //板子寬度
+var paddleX = (canvas.width-paddleWidth)/2;
+var rightPressed = false; 
+var leftPressed = false;
+var brickRowCount = 13; //磚列數
+var brickColumnCount = 4; //磚行(欄)數 (3普通+1特殊)
+var specialcolumncount = 1 // special l行磚
+var specialrowcount = 13  // special 1列13個
+var brickWidth = 75; //磚寬
+var brickHeight = 20; //磚高
+var brickPadding = 50; //磚距
+var specialbrickTOP = 60;
+var specialbrickLeft = 50
+var brickOffsetTop = 120; //磚塊起始高度
+var brickOffsetLeft = 50; //磚塊起始寬度
+var score = 0; //初始成績
+var lives = 3; //生命值
+
+var bricks = [];
+for(var c=0; c<brickColumnCount; c++) {
+  bricks[c] = [];
+  for(var r=0; r<brickRowCount; r++) {
+    bricks[c][r] = { x: 0, y: 0, status: 1 };
+  }
+}
+
+
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+
+function keyDownHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = true;
+      
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = true;
+    }
+}
+
+function keyUpHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = false;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = false;
+    }
+}
+
+function mouseMoveHandler(e) {
+  var relativeX = e.clientX - canvas.offsetLeft;
+  if(relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth/2;
+  }
+}
+//  邊界反彈
+function collisionDetection() {
+  for(var c=1; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      var b = bricks[c][r];
+      if(b.status == 1) {
+        if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+          dy = -dy;
+          b.status = 0;
+          score++;
+          if(score == brickRowCount*brickColumnCount) {
+            alert("YOU WIN, CONGRATS!");
+            document.location.reload();
+          }
+        }
+      }
+      
+    }
+  }
+}
+
+function specialcollisionDetection() {
+  for(var c=0; c<specialcolumncount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      var b = bricks[c][r];
+      if(b.status == 1) {
+        // 利用迴圈
+        for (let c = 0; c <= brickColumnCount;c= c +2){
+          // if(bricks[0][1].status == 1||bricks[0][3].status == 1 ||bricks[0][5].status==1||
+          // bricks[0][7].status == 1||bricks[0][9].status == 1 ||bricks[0][11].status==1
+          // ){
+            if (bricks[0][c].status == 1){
+              if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+              dy = -dy;
+              b.status = 0;
+              lives++
+              score++;
+              if(score == brickRowCount*brickColumnCount) {
+                alert("YOU WIN, CONGRATS!");
+                document.location.reload();}}
+           } 
+          
+
+        }
+        // if(bricks[0][0].status == 1||bricks[0][2].status == 1 ||bricks[0][4].status==1||
+        //   bricks[0][6].status == 1||bricks[0][8].status == 1 ||bricks[0][10].status==1||
+        //   bricks[0][12].status == 1){
+          
+        // 利用迴圈
+        for (let c = 1; c <= brickColumnCount;c= c +2){
+          // if(bricks[0][1].status == 1||bricks[0][3].status == 1 ||bricks[0][5].status==1||
+          // bricks[0][7].status == 1||bricks[0][9].status == 1 ||bricks[0][11].status==1
+          // ){
+          if (bricks[0][c].status == 1){
+            if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+            dy = -dy;
+            b.status = 0;
+            lives++
+            score++;
+            if(score == brickRowCount*brickColumnCount) {
+              alert("YOU WIN, CONGRATS!");
+              document.location.reload();}}
+           } 
+          
+
+        }
+      }
+      
+    }
+  }
+}
+
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = "#0095DD";
+  ctx.fill();
+  ctx.closePath();
+}
+
+//text 特殊磚產生新球
+function drawBall1() {
+  ctx.beginPath();
+  ctx.arc(-x, y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = "#008A8A";
+  ctx.fill();
+  ctx.closePath();
+}
+//text
+
+// 下方擋板
+
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#FFB6C1";
+  ctx.fill();
+  ctx.closePath();
+}
+
+
+function drawBricks() {
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      if(bricks[c][r].status == 1) { 
+        var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+        var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        if(c == 0 ){
+          if (r == 0 || r == 2 || r == 11) {ctx.fillStyle="#FF82FF"}
+          if (r == 1 || r == 3 || r == 10) {ctx.fillStyle="#9F1CFF"}
+          if (r == 5 || r == 7 || r == 9) {ctx.fillStyle="#BDBD00"}
+          if (r == 4 || r == 6 || r == 8) {ctx.fillStyle="#B87800"}
+          if (r == 12||r == 13) {ctx.fillStyle="#111223"}
+          }
+        else{ctx.fillStyle = "#0095DD";}
+        ctx.fill();
+        ctx.closePath();
+        
+        
+        
+        
+        
+      }
+      // 測試功能塊
+      
+    }
+  }
+}
+
+//這是啥麼
+
+function createBrick(n){
+  var oBrick = document.getElementById("brick")
+  //在大盒子brick中插入n個div方塊，並給予隨機顏色
+  for(var i = 0; i<n; i++){
+  var node = document.createElement("div");
+  node.style.backgroundColor= color();
+  oBrick.appendChild(node);
+  }
+  //獲取所有的方塊
+  var brickArr = obrick.getElementsByTagName("div")
+  //根據每個方塊當前所在位置，將left與top值賦給方塊
+  for(var i=0;i<brickArr.length;i++){
+  brickArr[i].style.left = brickArr[i].offsetLeft+"px";
+  brickArr[i].style.top = brickArr[i].offsetTop+"px";
+  }
+  //將所有方塊設定成絕對定位，注意這一步與上一步順序不能調換
+  for(var i =0;i<brickArr.length;i++){
+  brickArr[i].style.position="absolute";
+  }
+ }
+
+
+function drawScore() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Score: "+score, 8, 20);
+}
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+}
+
+
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBricks();
+  drawBall1();
+  drawBall();
+  drawPaddle();
+  drawScore();
+  drawLives();
+  collisionDetection();
+  specialcollisionDetection()
+  
+// 擋板偵測球
+  if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+    dx = -dx;
+  }
+  if(y + dy < ballRadius) {
+    dy = -dy;
+  }
+  else if(y + dy > canvas.height-ballRadius) {
+    if(x > paddleX && x < paddleX + paddleWidth) {
+      dy = -dy;
+      ;
+    }
+    else {
+      lives--;
+      if(!lives) {
+        alert("GAME OVER");
+        document.location.reload();
+      }
+      else if (lives <= 3){
+        x = canvas.width/2;
+        y = canvas.height-90;
+        dx = 3;
+        dy = -3;
+        paddleX = (canvas.width-paddleWidth)/2
+      }
+      else if (lives >= 9){
+        x = canvas.width/2;
+        y = canvas.height-90;
+        dx = 12;
+        dy = -12;
+        paddleX = (canvas.width-paddleWidth)/2;
+      }
+      else {
+        x = canvas.width/2;
+        y = canvas.height-90;
+        dx = 9;
+        dy = -9;
+        paddleX = (canvas.width-paddleWidth)/2;
+      }
+    }
+  }
+
+  if(rightPressed && paddleX < canvas.width-paddleWidth) {
+    paddleX += 12;
+  }
+  else if(leftPressed && paddleX > 0) {
+    paddleX -= 12;
+  }
+
+  x += dx;
+
+  y += dy;
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+    </script>
+    
+</body>
+
+</html>
